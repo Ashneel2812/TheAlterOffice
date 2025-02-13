@@ -50,9 +50,11 @@ function App() {
     try {
       const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // send cookies for authentication
-        body: JSON.stringify({ longUrl, customAlias, topic })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ longUrl: 'https://example.com', customAlias: 'alias', topic: 'test' }),
       });
       const data = await response.json();
       if (response.ok) {
