@@ -10,7 +10,7 @@ router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
       // After a successful login, redirect back to the React app
-      res.redirect('http://localhost:3000/?loggedIn=true');
+      res.redirect('https://alteroffice-frontend.vercel.app/?loggedIn=true');
     }
   );
 

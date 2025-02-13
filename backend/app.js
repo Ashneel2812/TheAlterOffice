@@ -6,8 +6,18 @@ const connectDB = require('./config/db');
 const redisClient = require('./config/redis'); // Ensure you require it here
 const path = require('path');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yaml');
+const fs = require('fs');
+
 
 const app = express();
+
+const file = fs.readFileSync(path.join(__dirname, './docs/swagger.yaml'), 'utf8');
+const swaggerDocument = YAML.parse(file);
+
+// Serve Swagger docs at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Connect to MongoDB
 connectDB();
@@ -16,7 +26,7 @@ connectDB();
 app.locals.redisClient = redisClient;
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://alteroffice-frontend.vercel.app',
   credentials: true,
 }));
 
@@ -50,6 +60,8 @@ app.use(express.static(path.join(__dirname, '../frontend/build')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
