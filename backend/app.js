@@ -9,8 +9,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yaml');
 const fs = require('fs');
-const RedisStore = require('connect-redis')(session); // Corrected import method
-
+const RedisStore = require('connect-redis')(session);
 
 const app = express();
 
@@ -24,6 +23,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 connectDB();
 
 // Attach the Redis client to app.locals so it can be accessed via req.app.locals
+console.log(redisClient);
 app.locals.redisClient = redisClient;
 
 app.use(cors({
