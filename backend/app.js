@@ -26,7 +26,8 @@ connectDB();
 app.locals.redisClient = redisClient;
 
 const corsOptions = {
-  origin: 'https://alteroffice-frontend.vercel.app',  // Replace with your actual frontend domain
+  origin: 'https://alteroffice-frontend.vercel.app',
+  // origin: ' http://localhost:3000',
   credentials: true,  // Allow cookies to be sent with cross-origin requests
 };
 app.options('*', cors(corsOptions));
@@ -39,16 +40,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sessions configuration
 app.use(session({
-  store: new RedisStore({ client: redisClient, ttl: 86400 }), // ttl: 1 day
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production', // Set to true if served over HTTPS
     httpOnly: true,
-    sameSite: 'lax',  
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
     maxAge: 1000 * 60 * 60 * 24,  // 1 day
-    domain: process.env.NODE_ENV === 'production' ? 'https://alteroffice-frontend.vercel.app/' : undefined,
+    // Use only the domain name without protocol or trailing slash:
+    domain: process.env.NODE_ENV === 'production' ? 'alteroffice-frontend.vercel.app' : undefined,
   },
 }));
 

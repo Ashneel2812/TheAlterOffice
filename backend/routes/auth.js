@@ -11,6 +11,7 @@ router.get('/google/callback',
     (req, res) => {
       // After a successful login, redirect back to the React app
       res.redirect('https://alteroffice-frontend.vercel.app/?loggedIn=true');
+      // res.redirect('http://localhost:3000');
     }
   );
 

@@ -40,6 +40,7 @@ function App() {
   // Redirect to Google OAuth login on backend
   const handleLogin = () => {
     window.location.href = 'https://alteroffice-backend-two.vercel.app/auth/google';
+    // window.location.href = 'http://localhost:5000/auth/google';
   };
 
   // Create a new short URL
@@ -49,6 +50,7 @@ function App() {
     setShortUrlData(null);
     try {
       const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
+        // const response = await fetch('http://localhost:5000/api/shorten', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,6 +78,7 @@ function App() {
     setAnalyticsData(null);
     try {
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/${alias}`, {
+        // const response = await fetch(`http://localhost:5000/api/analytics/${alias}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -96,6 +99,7 @@ function App() {
     setTopicAnalyticsData(null);
     try {
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/topic/${topicForAnalytics}`, {
+        // const response = await fetch(`http://localhost:5000/api/analytics/topic/${topicForAnalytics}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -114,6 +118,7 @@ function App() {
   const handleTestRedirection = () => {
     // This will navigate the browser to the redirection URL.
     window.location.href = `https://alteroffice-backend-two.vercel.app/api/shorten/${redirectionAlias}`;
+    // window.location.href = `http://localhost:5000/api/shorten/${redirectionAlias}`;
   };
 
   return (

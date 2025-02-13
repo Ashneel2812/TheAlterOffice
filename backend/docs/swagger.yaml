@@ -5,6 +5,7 @@ info:
   description: API for creating and managing short URLs with analytics and Google authentication.
 servers:
   - url: https://alteroffice-backend-two.vercel.app
+  # - url: http://localhost:5000
 paths:
   /auth/google:
     get:
@@ -48,6 +49,7 @@ paths:
                   shortUrl:
                     type: string
                     example: "https://alteroffice-backend-two.vercel.app/myalias"
+                    # example: "http://localhost:5000/myalias"
                   createdAt:
                     type: string
                     format: date-time
@@ -183,6 +185,7 @@ paths:
                         shortUrl:
                           type: string
                           example: "https://alteroffice-backend-two.vercel.app/myalias"
+                          # example: "http://localhost:5000/myalias"
                         totalClicks:
                           type: number
                           example: 10
