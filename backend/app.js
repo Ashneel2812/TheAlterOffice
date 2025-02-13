@@ -9,6 +9,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yaml');
 const fs = require('fs');
+const RedisStore = require('connect-redis')(session);
 
 
 const app = express();
@@ -36,9 +37,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sessions configuration
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
 // Initialize Passport
