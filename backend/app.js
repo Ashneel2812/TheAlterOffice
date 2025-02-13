@@ -9,7 +9,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yaml');
 const fs = require('fs');
-const RedisStore = require('connect-redis').default(session);
+const RedisStore = require('connect-redis')(session); // Corrected import method
 
 
 const app = express();
