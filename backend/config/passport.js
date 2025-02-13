@@ -1,5 +1,5 @@
 const passport = require('passport');
-const { Strategy: GoogleStrategy } = require('passport-google-oauth20'); // Correct import method
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 require('dotenv').config();
 

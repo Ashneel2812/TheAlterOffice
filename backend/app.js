@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const passport = require('./config/passport');
+// const passport = require('./config/passport');
 const connectDB = require('./config/db');
 const redisClient = require('./config/redis'); // Ensure you require it here
 const path = require('path');
@@ -9,7 +9,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yaml');
 const fs = require('fs');
-const RedisStore = require('connect-redis')(session);
+const {RedisStore} = require("connect-redis")
 
 const app = express();
 
@@ -23,7 +23,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 connectDB();
 
 // Attach the Redis client to app.locals so it can be accessed via req.app.locals
-console.log(redisClient);
 app.locals.redisClient = redisClient;
 
 app.use(cors({
@@ -36,17 +35,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Sessions configuration
-app.use(session({
-  store: new RedisStore({ client: redisClient }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
-}));
+// app.use(session({
+//   store: new RedisStore({ client: redisClient }),
+//   secret: process.env.SESSION_SECRET,
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: { secure: true }
+// }));
 
 // Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // API Routes
 app.use('/auth', require('./routes/auth'));
@@ -66,7 +65,9 @@ app.get('*', (req, res) => {
 
 
 
-if (require.main === module) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}
+// if (require.main === module) {
+//   const PORT = process.env.PORT || 5000;
+//   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// }
+
+module.exports = app;
