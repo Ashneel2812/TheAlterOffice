@@ -25,10 +25,13 @@ connectDB();
 // Attach the Redis client to app.locals so it can be accessed via req.app.locals
 app.locals.redisClient = redisClient;
 
-app.use(cors({
-  origin: 'https://alteroffice-frontend.vercel.app',
-  credentials: true,
-}));
+const corsOptions = {
+  origin: 'https://your-frontend-domain.com',  // Replace with your actual frontend domain
+  credentials: true,  // Allow cookies to be sent with cross-origin requests
+};
+
+app.use(cors(corsOptions));
+
 
 // Body parser middleware
 app.use(express.json());
@@ -36,17 +39,19 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sessions configuration
 app.use(session({
-  store: new RedisStore({ client: redisClient }),
+  store: new RedisStore({ client: redisClient, ttl: 86400 }), // ttl: 1 day
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Only secure in production
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'None', // Allow cross-origin cookies
-    maxAge: 1000 * 60 * 60 * 24 // 1 day expiration
-  }
+    sameSite: 'None',
+    maxAge: 1000 * 60 * 60 * 24,  // 1 day
+    domain:'https://alteroffice-frontend.vercel.app'
+  },
 }));
+
 
 // Initialize Passport
 app.use(passport.initialize());
