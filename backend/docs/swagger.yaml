@@ -4,7 +4,7 @@ info:
   version: "1.0.0"
   description: API for creating and managing short URLs with analytics and Google authentication.
 servers:
-  - url: https://alteroffice-backend.vercel.app
+  - url: https://alteroffice-backend-two.vercel.app
 paths:
   /auth/google:
     get:
@@ -47,7 +47,7 @@ paths:
                 properties:
                   shortUrl:
                     type: string
-                    example: "https://alteroffice-backend.vercel.app/myalias"
+                    example: "https://alteroffice-backend-two.vercel.app/myalias"
                   createdAt:
                     type: string
                     format: date-time
@@ -182,7 +182,7 @@ paths:
                       properties:
                         shortUrl:
                           type: string
-                          example: "https://alteroffice-backend.vercel.app/myalias"
+                          example: "https://alteroffice-backend-two.vercel.app/myalias"
                         totalClicks:
                           type: number
                           example: 10
