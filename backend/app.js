@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const passport = require('./config/passport');
+// const passport = require('./config/passport');
 const connectDB = require('./config/db');
 const redisClient = require('./config/redis'); // Ensure you require it here
 const path = require('path');
@@ -45,8 +45,8 @@ app.use(session({
 }));
 
 // Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // API Routes
 app.use('/auth', require('./routes/auth'));

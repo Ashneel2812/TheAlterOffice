@@ -1,5 +1,5 @@
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { Strategy: GoogleStrategy } = require('passport-google-oauth20'); // Correct import method
 const User = require('../models/User');
 require('dotenv').config();
 
@@ -19,17 +19,21 @@ passport.use(new GoogleStrategy({
   callbackURL: "/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    // Check if the user already exists
     const existingUser = await User.findOne({ googleId: profile.id });
     if (existingUser) {
-      return done(null, existingUser);
+      return done(null, existingUser); // Existing user
     }
+
+    // If the user doesn't exist, create a new one
     const newUser = new User({
       googleId: profile.id,
       email: profile.emails[0].value,
       name: profile.displayName
     });
+
     await newUser.save();
-    return done(null, newUser);
+    return done(null, newUser); // New user
   } catch (error) {
     return done(error, null);
   }
