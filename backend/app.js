@@ -44,11 +44,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
-    sameSite: 'None',
+    sameSite: 'lax',  
     maxAge: 1000 * 60 * 60 * 24,  // 1 day
-    domain:'https://alteroffice-frontend.vercel.app'
+    domain: process.env.NODE_ENV === 'production' ? 'https://alteroffice-frontend.vercel.app/' : undefined,
   },
 }));
 
