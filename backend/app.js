@@ -26,7 +26,7 @@ connectDB();
 app.locals.redisClient = redisClient;
 
 const corsOptions = {
-  origin: 'https://your-frontend-domain.com',  // Replace with your actual frontend domain
+  origin: 'https://alteroffice-frontend.vercel.app/',  // Replace with your actual frontend domain
   credentials: true,  // Allow cookies to be sent with cross-origin requests
 };
 
