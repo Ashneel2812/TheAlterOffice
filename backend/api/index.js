@@ -1,6 +1,4 @@
 require('dotenv').config();  // Make sure dotenv is loaded before requiring the app
-const dbURI = process.env.MONGO_URI;
-console.log(dbURI);
 const app = require('../app'); // Import the app module
 
 // The server will start when running this file

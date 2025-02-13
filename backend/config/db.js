@@ -4,7 +4,6 @@ const connectDB = async () => {
   try {
     // Get the MongoDB URI from the environment variables
     const dbURI = process.env.MONGO_URI;
-    console.log(dbURI);
 
     if (!dbURI) {
       console.error('MongoDB URI is undefined. Please check your .env file or environment configuration.');
