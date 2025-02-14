@@ -1,11 +1,11 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET; // Ensure it's the same value
 
 module.exports = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
         console.error("JWT verification error:", err);
