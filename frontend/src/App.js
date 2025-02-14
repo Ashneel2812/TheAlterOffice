@@ -1,4 +1,3 @@
-// frontend/src/App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
@@ -10,10 +9,10 @@ function App() {
   const [longUrl, setLongUrl] = useState('');
   const [customAlias, setCustomAlias] = useState('');
   const [topic, setTopic] = useState('');
-  // Instead of storing only the URL, we now store an object with shortUrl and createdAt
+  // Store an object with shortUrl and createdAt
   const [shortUrlData, setShortUrlData] = useState(null);
 
-  // States for analytics by alias (includes overall if alias === "overall")
+  // States for analytics by alias (or overall)
   const [analyticsAlias, setAnalyticsAlias] = useState('');
   const [analyticsData, setAnalyticsData] = useState(null);
 
@@ -27,20 +26,27 @@ function App() {
   // Error message state
   const [error, setError] = useState('');
 
-  // On load, check if user has been redirected after login
+  // On load, check for token in URL and localStorage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('loggedIn') === 'true') {
+    const token = params.get('token');
+    if (token) {
+      // Save token in localStorage and mark as authenticated
+      localStorage.setItem('token', token);
       setIsAuthenticated(true);
-      // Optionally remove the query parameter
+      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      // Check if token already exists in localStorage
+      if (localStorage.getItem('token')) {
+        setIsAuthenticated(true);
+      }
     }
   }, []);
 
   // Redirect to Google OAuth login on backend
   const handleLogin = () => {
     window.location.href = 'https://alteroffice-backend-two.vercel.app/auth/google';
-    // window.location.href = 'http://localhost:5000/auth/google';
   };
 
   // Create a new short URL
@@ -49,37 +55,37 @@ function App() {
     setError('');
     setShortUrlData(null);
     try {
-        // const response = await fetch('http://localhost:5000/api/shorten', {
-          const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({ longUrl, customAlias, topic })
-          });
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ longUrl, customAlias, topic })
+      });
       const data = await response.json();
       if (response.ok) {
-        // Expecting response to contain both shortUrl and createdAt
         setShortUrlData(data);
       } else {
-        // Set the error message returned by the API (for example, "Alias already exists")
         setError(data.message || 'Error creating short URL');
       }
     } catch (err) {
       setError('Error: ' + err.message);
     }
   };
-  
 
-  // Get analytics by alias (or overall if alias === "overall")
+  // Get analytics by alias (or overall if alias is "overall")
   const handleGetAnalytics = async (alias) => {
     setError('');
     setAnalyticsData(null);
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/${alias}`, {
-        // const response = await fetch(`http://localhost:5000/api/analytics/${alias}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include'
       });
       const data = await response.json();
@@ -98,9 +104,12 @@ function App() {
     setError('');
     setTopicAnalyticsData(null);
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/topic/${topicForAnalytics}`, {
-        // const response = await fetch(`http://localhost:5000/api/analytics/topic/${topicForAnalytics}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include'
       });
       const data = await response.json();
@@ -116,9 +125,7 @@ function App() {
 
   // Test redirection by navigating to /api/shorten/:alias
   const handleTestRedirection = () => {
-    // This will navigate the browser to the redirection URL.
     window.location.href = `https://alteroffice-backend-two.vercel.app/api/shorten/${redirectionAlias}`;
-    // window.location.href = `http://localhost:5000/api/shorten/${redirectionAlias}`;
   };
 
   return (
@@ -246,7 +253,6 @@ function App() {
             </p>
             <p>**Use only alias name for redirection**</p>
           </section>
-
           {error && (
             <div className="error">
               <p>{error}</p>
