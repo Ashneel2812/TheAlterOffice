@@ -1,43 +1,31 @@
+const express = require('express');
+const router = express.Router();
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
-require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-passport.deserializeUser((id, done) => {
-  User.findById(id)
-    .then(user => done(null, user))
-    .catch(err => done(err, null));
-});
+// Initiate Google OAuth authentication (disable session here too)
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'https://alteroffice-backend-two.vercel.app/auth/google/callback'
-  // callbackURL: 'http://localhost:5000/auth/google/callback'
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    // Check if the user already exists
-    const existingUser = await User.findOne({ googleId: profile.id });
-    if (existingUser) {
-      return done(null, existingUser); // Existing user
-    }
-
-    // If the user doesn't exist, create a new one
-    const newUser = new User({
-      googleId: profile.id,
-      email: profile.emails[0].value,
-      name: profile.displayName
-    });
-
-    await newUser.save();
-    return done(null, newUser); // New user
-  } catch (error) {
-    return done(error, null);
+// Google OAuth callback
+router.get('/google/callback', 
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    // Generate a JWT token for the authenticated user
+    const token = jwt.sign(
+      { id: req.user.id, email: req.user.email, name: req.user.name },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+    // Redirect back to your frontend with the token as a query parameter
+    res.redirect(`https://alteroffice-frontend.vercel.app/?token=${token}`);
   }
-}));
+);
+
+// Logout route (for JWT, logout is handled client-side by discarding the token)
+router.get('/logout', (req, res) => {
+  res.redirect('/');
+});
 
 module.exports = passport;
