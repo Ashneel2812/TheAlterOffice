@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -7,7 +9,11 @@ module.exports = (req, res, next) => {
   console.log("JWT_SECRET used for verification:", JWT_SECRET);
   
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1];
+    const token = jwt.sign(
+        { id: req.user.id, email: req.user.email, name: req.user.name },
+        process.env.JWT_SECRET, // Make sure this is set correctly
+        { expiresIn: '1d' }
+      );
     console.log("Extracted token:", token);
     
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
