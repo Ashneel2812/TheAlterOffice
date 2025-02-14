@@ -48,8 +48,8 @@ paths:
                 properties:
                   shortUrl:
                     type: string
-                    example: "https://alteroffice-backend-two.vercel.app//myalias"
-                    # example: "https://alteroffice-backend-two.vercel.app//myalias"
+                    example: "https://alteroffice-backend-two.vercel.app/myalias"
+                    # example: "https://alteroffice-backend-two.vercel.app/myalias"
                   createdAt:
                     type: string
                     format: date-time
@@ -184,8 +184,8 @@ paths:
                       properties:
                         shortUrl:
                           type: string
-                          example: "https://alteroffice-backend-two.vercel.app//myalias"
-                          # example: "https://alteroffice-backend-two.vercel.app//myalias"
+                          example: "https://alteroffice-backend-two.vercel.app/myalias"
+                          # example: "https://alteroffice-backend-two.vercel.app/myalias"
                         totalClicks:
                           type: number
                           example: 10

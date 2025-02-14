@@ -46,7 +46,7 @@ function App() {
 
   // Redirect to Google OAuth login on backend
   const handleLogin = () => {
-    window.location.href = 'https://alteroffice-backend-two.vercel.app//auth/google';
+    window.location.href = 'https://alteroffice-backend-two.vercel.app/auth/google';
   };
 
   // Create a new short URL
@@ -56,7 +56,7 @@ function App() {
     setShortUrlData(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('https://alteroffice-backend-two.vercel.app//api/shorten', {
+      const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ function App() {
     setAnalyticsData(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://alteroffice-backend-two.vercel.app//api/analytics/${alias}`, {
+      const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/${alias}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ function App() {
     setTopicAnalyticsData(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://alteroffice-backend-two.vercel.app//api/analytics/topic/${topicForAnalytics}`, {
+      const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/topic/${topicForAnalytics}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -125,7 +125,7 @@ function App() {
 
   // Test redirection by navigating to /api/shorten/:alias
   const handleTestRedirection = () => {
-    window.location.href = `https://alteroffice-backend-two.vercel.app//api/shorten/${redirectionAlias}`;
+    window.location.href = `https://alteroffice-backend-two.vercel.app/api/shorten/${redirectionAlias}`;
   };
 
   return (
@@ -249,7 +249,7 @@ function App() {
               <button onClick={handleTestRedirection}>Test Redirection</button>
             </div>
             <p>
-              This will navigate your browser to <code>https://alteroffice-backend-two.vercel.app//api/shorten/your-alias</code>.
+              This will navigate your browser to <code>https://alteroffice-backend-two.vercel.app/api/shorten/your-alias</code>.
             </p>
             <p>**Use only alias name for redirection**</p>
           </section>
