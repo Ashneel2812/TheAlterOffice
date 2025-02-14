@@ -2,16 +2,15 @@
 const rateLimit = require('express-rate-limit');
 
 const createUrlLimiter = rateLimit({
-  // 15-minute window
-  windowMs: 15 * 60 * 1000,
-  // Limit each user to 10 requests per window
-  max: 10,
-  // Customize the response message
-  message: 'Too many short URLs created from this account, please try again later.',
-  // Optionally, you can customize key generation to use user ID if available.
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each user to 10 requests per windowMs
+  message: 'Too many requests from this account, please try again later.',
   keyGenerator: (req, res) => {
-    // Use the authenticated user's ID if available; otherwise, use the IP address.
-    return req.user ? req.user._id.toString() : req.ip;
+    // If req.user exists and has an id, use it; otherwise use the IP address.
+    if (req.user && req.user.id) {
+      return req.user.id.toString();
+    }
+    return req.ip;
   }
 });
 
