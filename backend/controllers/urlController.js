@@ -82,10 +82,13 @@ exports.getUrlAnalytics = async (req, res) => {
     const { alias } = req.params;
     const parser = new UAParser();
 
+    console.log(`Received request for analytics, alias: ${alias}, user ID: ${req.user._id}`);
+
     // If alias is "overall", aggregate analytics for all URLs by the user.
     if (alias.toLowerCase() === 'overall') {
       console.log(`Aggregating overall analytics for user: ${req.user._id}`);
       const urls = await Url.find({ createdBy: req.user._id });
+      console.log(`Found ${urls.length} URLs for user: ${req.user._id}`);
       
       // Initialize overall aggregation counters
       let totalUrls = urls.length;
@@ -97,27 +100,28 @@ exports.getUrlAnalytics = async (req, res) => {
   
       // Process each URL's analytics
       urls.forEach(url => {
+        console.log(`Processing URL with alias: ${url.alias}`);
         url.analytics.forEach(entry => {
           totalClicks++;
           if (entry.ip) uniqueIps.add(entry.ip);
-  
+
           // Group clicks by date (format YYYY-MM-DD)
           const date = new Date(entry.timestamp).toISOString().split('T')[0];
           clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
-  
+
           // Parse user agent for OS and device type
           parser.setUA(entry.userAgent);
           const result = parser.getResult();
           const osName = result.os.name || 'Unknown';
           const deviceName = result.device.type || 'desktop';
-  
+
           // Aggregate OS data
           if (!osTypeMap[osName]) {
             osTypeMap[osName] = { uniqueClicks: 0, uniqueUsers: new Set() };
           }
           osTypeMap[osName].uniqueClicks++;
           if (entry.ip) osTypeMap[osName].uniqueUsers.add(entry.ip);
-  
+
           // Aggregate device data
           if (!deviceTypeMap[deviceName]) {
             deviceTypeMap[deviceName] = { uniqueClicks: 0, uniqueUsers: new Set() };
@@ -179,6 +183,7 @@ exports.getUrlAnalytics = async (req, res) => {
       let deviceTypeMap = {};
   
       analytics.forEach(entry => {
+        console.log(`Processing click entry for URL: ${alias}`);
         if (entry.ip) uniqueIps.add(entry.ip);
         const date = new Date(entry.timestamp).toISOString().split('T')[0];
         clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
@@ -233,10 +238,11 @@ exports.getUrlAnalytics = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error occurred:', error);
     res.status(500).json({ message: 'Server error.' });
   }
 };
+
 
   
 exports.getTopicAnalytics = async (req, res) => {
