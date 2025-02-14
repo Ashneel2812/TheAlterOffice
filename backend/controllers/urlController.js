@@ -81,14 +81,15 @@ exports.getUrlAnalytics = async (req, res) => {
   try {
     const { alias } = req.params;
     const parser = new UAParser();
-
-    console.log(`Received request for analytics, alias: ${alias}, user ID: ${req.user._id}`);
+    // Use req.user.id (or fallback if _id exists)
+    const userId = req.user._id || req.user.id;
+    console.log("Received request for analytics, alias:", alias, "user ID:", userId);
 
     // If alias is "overall", aggregate analytics for all URLs by the user.
     if (alias.toLowerCase() === 'overall') {
-      console.log(`Aggregating overall analytics for user: ${req.user._id}`);
-      const urls = await Url.find({ createdBy: req.user._id });
-      console.log(`Found ${urls.length} URLs for user: ${req.user._id}`);
+      console.log(`Aggregating overall analytics for user: ${userId}`);
+      const urls = await Url.find({ createdBy: userId });
+      console.log(`Found ${urls.length} URLs for user: ${userId}`);
       
       // Initialize overall aggregation counters
       let totalUrls = urls.length;
@@ -100,28 +101,27 @@ exports.getUrlAnalytics = async (req, res) => {
   
       // Process each URL's analytics
       urls.forEach(url => {
-        console.log(`Processing URL with alias: ${url.alias}`);
         url.analytics.forEach(entry => {
           totalClicks++;
           if (entry.ip) uniqueIps.add(entry.ip);
-
+  
           // Group clicks by date (format YYYY-MM-DD)
           const date = new Date(entry.timestamp).toISOString().split('T')[0];
           clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
-
+  
           // Parse user agent for OS and device type
           parser.setUA(entry.userAgent);
           const result = parser.getResult();
           const osName = result.os.name || 'Unknown';
           const deviceName = result.device.type || 'desktop';
-
+  
           // Aggregate OS data
           if (!osTypeMap[osName]) {
             osTypeMap[osName] = { uniqueClicks: 0, uniqueUsers: new Set() };
           }
           osTypeMap[osName].uniqueClicks++;
           if (entry.ip) osTypeMap[osName].uniqueUsers.add(entry.ip);
-
+  
           // Aggregate device data
           if (!deviceTypeMap[deviceName]) {
             deviceTypeMap[deviceName] = { uniqueClicks: 0, uniqueUsers: new Set() };
@@ -167,10 +167,10 @@ exports.getUrlAnalytics = async (req, res) => {
     } 
     // Otherwise, return analytics for the specific URL (alias)
     else {
-      console.log(`Fetching analytics for alias: ${alias} and user: ${req.user._id}`);
-      const urlData = await Url.findOne({ alias, createdBy: req.user._id });
+      console.log(`Fetching analytics for alias: ${alias} and user: ${userId}`);
+      const urlData = await Url.findOne({ alias, createdBy: userId });
       if (!urlData) {
-        console.log(`URL not found for alias: ${alias} and user: ${req.user._id}`);
+        console.log(`URL not found for alias: ${alias} and user: ${userId}`);
         return res.status(404).json({ message: 'URL not found.' });
       }
       console.log('Found URL data:', urlData);
@@ -183,7 +183,6 @@ exports.getUrlAnalytics = async (req, res) => {
       let deviceTypeMap = {};
   
       analytics.forEach(entry => {
-        console.log(`Processing click entry for URL: ${alias}`);
         if (entry.ip) uniqueIps.add(entry.ip);
         const date = new Date(entry.timestamp).toISOString().split('T')[0];
         clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
@@ -238,10 +237,11 @@ exports.getUrlAnalytics = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error occurred:', error);
+    console.error("Error in getUrlAnalytics:", error);
     res.status(500).json({ message: 'Server error.' });
   }
 };
+
 
 
 exports.getTopicAnalytics = async (req, res) => {
@@ -251,14 +251,16 @@ exports.getTopicAnalytics = async (req, res) => {
     console.log("req.params:", req.params);
 
     const { topic } = req.params;
-    console.log(`Aggregating analytics for topic: "${topic}" and user: ${req.user._id}`);
+    // Use a fallback for user ID: if req.user._id is undefined, use req.user.id.
+    const userId = req.user._id || req.user.id;
+    console.log(`Aggregating analytics for topic: "${topic}" and user: ${userId}`);
 
     // Find URLs that match the given topic and belong to the authenticated user
-    const urls = await Url.find({ topic: topic, createdBy: req.user._id });
-    console.log(`Found ${urls.length} URLs for topic "${topic}":`, urls);
+    const urls = await Url.find({ topic: topic, createdBy: userId });
+    console.log(`Found ${urls.length} URLs for topic "${topic}" and user: ${userId}`, urls);
 
     if (!urls || urls.length === 0) {
-      console.log(`No URLs found for topic: "${topic}" and user: ${req.user._id}`);
+      console.log(`No URLs found for topic: "${topic}" and user: ${userId}`);
       return res.status(404).json({ message: 'No URLs found for this topic.' });
     }
 
@@ -273,13 +275,12 @@ exports.getTopicAnalytics = async (req, res) => {
     
     // Process analytics for each URL
     urls.forEach(url => {
-      // Log each URL's analytics array to inspect data
       console.log(`Processing URL: ${url.alias}, analytics count: ${url.analytics.length}`);
       url.analytics.forEach(entry => {
         totalClicks++;
         if (entry.ip) uniqueIps.add(entry.ip);
   
-        // Group clicks by date (YYYY-MM-DD)
+        // Group clicks by date (format YYYY-MM-DD)
         const date = new Date(entry.timestamp).toISOString().split('T')[0];
         clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
   
@@ -354,7 +355,7 @@ exports.getTopicAnalytics = async (req, res) => {
 
 exports.getOverallAnalytics = async (req, res) => {
   try {
-    const urls = await Url.find({ createdBy: req.user._id });
+    const urls = await Url.find({ createdBy: req.user.id });
     // Instead of returning "URL not found", return zeroed analytics if no URLs exist.
     if (!urls || urls.length === 0) {
       return res.json({
