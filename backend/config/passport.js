@@ -1,31 +1,38 @@
-const express = require('express');
-const router = express.Router();
 const passport = require('passport');
-const jwt = require('jsonwebtoken');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const User = require('../models/User');
+require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-
-// Initiate Google OAuth authentication (disable session here too)
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
-
-// Google OAuth callback
-router.get('/google/callback', 
-  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-  (req, res) => {
-    // Generate a JWT token for the authenticated user
-    const token = jwt.sign(
-      { id: req.user.id, email: req.user.email, name: req.user.name },
-      JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-    // Redirect back to your frontend with the token as a query parameter
-    res.redirect(`https://alteroffice-frontend.vercel.app/?token=${token}`);
-  }
-);
-
-// Logout route (for JWT, logout is handled client-side by discarding the token)
-router.get('/logout', (req, res) => {
-  res.redirect('/');
+passport.serializeUser((user, done) => {
+  done(null, user.id);
 });
+
+passport.deserializeUser((id, done) => {
+  User.findById(id)
+    .then(user => done(null, user))
+    .catch(err => done(err, null));
+});
+
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'https://alteroffice-backend-two.vercel.app/auth/google/callback'
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const existingUser = await User.findOne({ googleId: profile.id });
+    if (existingUser) {
+      return done(null, existingUser);
+    }
+    const newUser = new User({
+      googleId: profile.id,
+      email: profile.emails[0].value,
+      name: profile.displayName
+    });
+    await newUser.save();
+    return done(null, newUser);
+  } catch (error) {
+    return done(error, null);
+  }
+}));
 
 module.exports = passport;
