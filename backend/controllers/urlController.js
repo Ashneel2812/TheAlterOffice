@@ -6,34 +6,28 @@ const UAParser = require('ua-parser-js');
 exports.createShortUrl = async (req, res) => {
   try {
     const { longUrl, customAlias, topic } = req.body;
-    let alias = customAlias;
-    if (alias) {
-      const existing = await Url.findOne({ alias });
-      if (existing) {
-        return res.status(400).json({ message: 'Alias already in use.' });
-      }
-    } else {
-      alias = shortid.generate();
+    let alias = customAlias || generateUniqueAlias();
+
+    // Ensure req.user is available from your JWT verification middleware
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized: User not found in token' });
     }
 
     const newUrl = new Url({
       longUrl,
       alias,
       topic: topic || 'general',
-      createdBy: req.user._id
+      createdBy: req.user.id,  // Added this field
     });
 
     await newUrl.save();
-
-    // Cache the mapping in Redis for 1 hour
-    await redisClient.set(alias, longUrl, { EX: 3600 });
-
-    res.json({ shortUrl: `http://localhost:${process.env.PORT || 5000}/${alias}`, createdAt: newUrl.createdAt });
+    res.json({ shortUrl: `https://alteroffice-backend-two.vercel.app/${alias}`, createdAt: newUrl.createdAt });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error.' });
+    res.status(500).json({ message: error.message || 'Server error.' });
   }
 };
+
 
 
 exports.redirectUrl = async (req, res) => {
