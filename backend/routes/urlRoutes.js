@@ -7,9 +7,9 @@ const verifyJWT = require('../middleware/verifyJWT');
 
 // Protected endpoints (require authentication)
 router.post('/shorten', verifyJWT, createUrlLimiter, urlController.createShortUrl);
-router.get('/analytics/:alias', authMiddleware, urlController.getUrlAnalytics);
-router.get('/analytics/topic/:topic', authMiddleware, urlController.getTopicAnalytics);
-router.get('/analytics/overall', authMiddleware, urlController.getOverallAnalytics);
+router.get('/analytics/:alias', verifyJWT, urlController.getUrlAnalytics);
+router.get('/analytics/topic/:topic', verifyJWT, urlController.getTopicAnalytics);
+router.get('/analytics/overall', verifyJWT, urlController.getOverallAnalytics);
 
 // Public endpoint for redirection (analytics logging is handled in the controller)
 router.get('/shorten/:alias', urlController.redirectUrl);

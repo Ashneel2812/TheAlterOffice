@@ -84,7 +84,8 @@ function App() {
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/${alias}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -108,7 +109,8 @@ function App() {
       const response = await fetch(`https://alteroffice-backend-two.vercel.app/api/analytics/topic/${topicForAnalytics}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
