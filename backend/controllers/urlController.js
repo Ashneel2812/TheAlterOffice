@@ -244,42 +244,58 @@ exports.getUrlAnalytics = async (req, res) => {
 };
 
 
-  
 exports.getTopicAnalytics = async (req, res) => {
   try {
+    console.log("In getTopicAnalytics:");
+    console.log("req.user =", req.user);
+    console.log("req.params =", req.params);
+
+    // Destructure topic from request parameters
     const { topic } = req.params;
-    // Find URLs with the given topic created by the authenticated user
-    const urls = await Url.find({ topic, createdBy: req.user._id });
+    
+    if (!req.user || !req.user._id) {
+      console.error("User not found in request. Ensure JWT middleware is applied.");
+      return res.status(401).json({ message: 'Unauthorized: User not authenticated' });
+    }
+    
+    console.log(`Aggregating analytics for topic: ${topic} and user: ${req.user._id}`);
+
+    // Find URLs matching the topic for the authenticated user
+    const urls = await Url.find({ topic: topic, createdBy: req.user._id });
     if (!urls || urls.length === 0) {
+      console.log(`No URLs found for topic: ${topic} and user: ${req.user._id}`);
       return res.status(404).json({ message: 'No URLs found for this topic.' });
     }
-
+    
+    // Initialize aggregation counters
     let totalClicks = 0;
     let uniqueIps = new Set();
     let clicksByDateMap = {};
-    let osTypeMap = {};
-    let deviceTypeMap = {};
+    let osTypeMap = {};     // { osName: { uniqueClicks, uniqueUsers: Set } }
+    let deviceTypeMap = {}; // { deviceName: { uniqueClicks, uniqueUsers: Set } }
+    
     const parser = new UAParser();
-
+    
+    // Process each URL's analytics
     urls.forEach(url => {
       url.analytics.forEach(entry => {
         totalClicks++;
         if (entry.ip) uniqueIps.add(entry.ip);
-
+        
         const date = new Date(entry.timestamp).toISOString().split('T')[0];
         clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
-
+        
         parser.setUA(entry.userAgent);
         const result = parser.getResult();
         const osName = result.os.name || 'Unknown';
         const deviceName = result.device.type || 'desktop';
-
+        
         if (!osTypeMap[osName]) {
           osTypeMap[osName] = { uniqueClicks: 0, uniqueUsers: new Set() };
         }
         osTypeMap[osName].uniqueClicks++;
         if (entry.ip) osTypeMap[osName].uniqueUsers.add(entry.ip);
-
+        
         if (!deviceTypeMap[deviceName]) {
           deviceTypeMap[deviceName] = { uniqueClicks: 0, uniqueUsers: new Set() };
         }
@@ -287,7 +303,7 @@ exports.getTopicAnalytics = async (req, res) => {
         if (entry.ip) deviceTypeMap[deviceName].uniqueUsers.add(entry.ip);
       });
     });
-
+    
     const clicksByDate = Object.keys(clicksByDateMap).map(date => ({
       date,
       clickCount: clicksByDateMap[date]
@@ -302,27 +318,36 @@ exports.getTopicAnalytics = async (req, res) => {
       uniqueClicks: deviceTypeMap[device].uniqueClicks,
       uniqueUsers: deviceTypeMap[device].uniqueUsers.size
     }));
-
-    // Also include a list of URLs with individual analytics if desired
-    const urlsData = urls.map(u => ({
-      shortUrl: `http://localhost:${process.env.PORT || 5000}/${u.alias}`,
-      totalClicks: u.analytics.length,
-      uniqueUsers: new Set(u.analytics.map(entry => entry.ip)).size
-    }));
-
-    res.json({
+    
+    console.log("Topic aggregated data:", {
+      totalUrls: urls.length,
       totalClicks,
       uniqueUsers: uniqueIps.size,
       clicksByDate,
-      urls: urlsData,
       osType,
       deviceType
     });
+    
+    return res.json({
+      totalUrls: urls.length,
+      totalClicks,
+      uniqueUsers: uniqueIps.size,
+      clicksByDate,
+      osType,
+      deviceType,
+      // Optionally, include individual URL summaries:
+      urls: urls.map(u => ({
+        shortUrl: u.alias,
+        totalClicks: u.analytics.length,
+        uniqueUsers: new Set(u.analytics.map(entry => entry.ip)).size
+      }))
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error in getTopicAnalytics:", error);
     res.status(500).json({ message: 'Server error.' });
   }
 };
+
 
 
 exports.getOverallAnalytics = async (req, res) => {
