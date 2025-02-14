@@ -1,81 +1,56 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
-const passport = require('./config/passport');
+const passport = require('./config/passport'); // We'll still use Passport for OAuth strategy
 const connectDB = require('./config/db');
-const redisClient = require('./config/redis'); // Ensure you require it here
+const redisClient = require('./config/redis'); // if you use it elsewhere
 const path = require('path');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yaml');
 const fs = require('fs');
-const {RedisStore} = require("connect-redis")
 
 const app = express();
 
+// Swagger documentation setup
 const file = fs.readFileSync(path.join(__dirname, './docs/swagger.yaml'), 'utf8');
 const swaggerDocument = YAML.parse(file);
-
-// Serve Swagger docs at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Connect to MongoDB
 connectDB();
 
-// Attach the Redis client to app.locals so it can be accessed via req.app.locals
-app.locals.redisClient = redisClient;
-
+// CORS configuration
 const corsOptions = {
-  origin: 'https://alteroffice-frontend.vercel.app',
-  // origin: ' http://localhost:3000',
-  credentials: true,  // Allow cookies to be sent with cross-origin requests
+  origin: 'https://alteroffice-frontend.vercel.app',  // Replace with your actual frontend URL
+  credentials: true,
 };
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
-
 
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Sessions configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // Set to true if served over HTTPS
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
-    maxAge: 1000 * 60 * 60 * 24,  // 1 day
-    // Use only the domain name without protocol or trailing slash:
-    domain: process.env.NODE_ENV === 'production' ? 'alteroffice-frontend.vercel.app' : undefined,
-  },
-}));
-
-
-// Initialize Passport
+// Initialize Passport (only for OAuth, no session management)
 app.use(passport.initialize());
-app.use(passport.session());
 
-// API Routes
+// API Routes (we'll update these to use JWT-based auth)
 app.use('/auth', require('./routes/auth'));
 app.use('/api', require('./routes/urlRoutes'));
 
-// Handle redirection for shortened URLs (make sure this comes before any catch-all)
+// Redirection route for shortened URLs
 app.get('/:alias', (req, res, next) => {
   const urlController = require('./controllers/urlController');
   return urlController.redirectUrl(req, res, next);
 });
 
-// Serve static files from the frontend build folder
+// Serve static files (if applicable)
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
-
-
+// Only start the server if run directly
 // if (require.main === module) {
 //   const PORT = process.env.PORT || 5000;
 //   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
