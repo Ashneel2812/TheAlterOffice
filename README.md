@@ -2,6 +2,11 @@
 
 This project is a scalable **Custom URL Shortener API** with advanced analytics, JWT-based authentication via Google OAuth, rate limiting, and a fully containerized deployment using Docker. The solution includes clear API documentation (via Swagger) and a suite of tests to validate endpoint functionality. Frequent Git commits have been made to document the solution's evolution.
 
+Live URLs
+
+Frontend(Just for a clenaer look): https://alteroffice-frontend.vercel.app
+Backend: https://alteroffice-backend-two.vercel.app
+
 ## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
