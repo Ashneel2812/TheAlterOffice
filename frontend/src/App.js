@@ -49,15 +49,15 @@ function App() {
     setError('');
     setShortUrlData(null);
     try {
-      const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
         // const response = await fetch('http://localhost:5000/api/shorten', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ longUrl: 'https://example.com', customAlias: 'alias', topic: 'test' }),
-      });
+          const response = await fetch('https://alteroffice-backend-two.vercel.app/api/shorten', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({ longUrl, customAlias, topic })
+          });
       const data = await response.json();
       if (response.ok) {
         // Expecting response to contain both shortUrl and createdAt

@@ -3,6 +3,7 @@ const router = express.Router();
 const urlController = require('../controllers/urlController');
 const authMiddleware = require('../middleware/auth');
 const createUrlLimiter = require('../middleware/rateLimiter');
+const verifyJWT = require('../middleware/verifyJWT');
 
 // Protected endpoints (require authentication)
 router.post('/shorten', authMiddleware, createUrlLimiter, urlController.createShortUrl);
