@@ -247,26 +247,21 @@ exports.getUrlAnalytics = async (req, res) => {
 exports.getTopicAnalytics = async (req, res) => {
   try {
     console.log("In getTopicAnalytics:");
-    console.log("req.user =", req.user);
-    console.log("req.params =", req.params);
+    console.log("req.user:", req.user);
+    console.log("req.params:", req.params);
 
-    // Destructure topic from request parameters
     const { topic } = req.params;
-    
-    if (!req.user || !req.user._id) {
-      console.error("User not found in request. Ensure JWT middleware is applied.");
-      return res.status(401).json({ message: 'Unauthorized: User not authenticated' });
-    }
-    
-    console.log(`Aggregating analytics for topic: ${topic} and user: ${req.user._id}`);
+    console.log(`Aggregating analytics for topic: "${topic}" and user: ${req.user._id}`);
 
-    // Find URLs matching the topic for the authenticated user
+    // Find URLs that match the given topic and belong to the authenticated user
     const urls = await Url.find({ topic: topic, createdBy: req.user._id });
+    console.log(`Found ${urls.length} URLs for topic "${topic}":`, urls);
+
     if (!urls || urls.length === 0) {
-      console.log(`No URLs found for topic: ${topic} and user: ${req.user._id}`);
+      console.log(`No URLs found for topic: "${topic}" and user: ${req.user._id}`);
       return res.status(404).json({ message: 'No URLs found for this topic.' });
     }
-    
+
     // Initialize aggregation counters
     let totalClicks = 0;
     let uniqueIps = new Set();
@@ -276,26 +271,32 @@ exports.getTopicAnalytics = async (req, res) => {
     
     const parser = new UAParser();
     
-    // Process each URL's analytics
+    // Process analytics for each URL
     urls.forEach(url => {
+      // Log each URL's analytics array to inspect data
+      console.log(`Processing URL: ${url.alias}, analytics count: ${url.analytics.length}`);
       url.analytics.forEach(entry => {
         totalClicks++;
         if (entry.ip) uniqueIps.add(entry.ip);
-        
+  
+        // Group clicks by date (YYYY-MM-DD)
         const date = new Date(entry.timestamp).toISOString().split('T')[0];
         clicksByDateMap[date] = (clicksByDateMap[date] || 0) + 1;
-        
+  
+        // Parse user agent for OS and device type
         parser.setUA(entry.userAgent);
         const result = parser.getResult();
         const osName = result.os.name || 'Unknown';
         const deviceName = result.device.type || 'desktop';
-        
+  
+        // Aggregate OS data
         if (!osTypeMap[osName]) {
           osTypeMap[osName] = { uniqueClicks: 0, uniqueUsers: new Set() };
         }
         osTypeMap[osName].uniqueClicks++;
         if (entry.ip) osTypeMap[osName].uniqueUsers.add(entry.ip);
-        
+  
+        // Aggregate device data
         if (!deviceTypeMap[deviceName]) {
           deviceTypeMap[deviceName] = { uniqueClicks: 0, uniqueUsers: new Set() };
         }
@@ -318,7 +319,7 @@ exports.getTopicAnalytics = async (req, res) => {
       uniqueClicks: deviceTypeMap[device].uniqueClicks,
       uniqueUsers: deviceTypeMap[device].uniqueUsers.size
     }));
-    
+  
     console.log("Topic aggregated data:", {
       totalUrls: urls.length,
       totalClicks,
@@ -335,7 +336,7 @@ exports.getTopicAnalytics = async (req, res) => {
       clicksByDate,
       osType,
       deviceType,
-      // Optionally, include individual URL summaries:
+      // Optionally, include summaries of each URL
       urls: urls.map(u => ({
         shortUrl: u.alias,
         totalClicks: u.analytics.length,
@@ -347,6 +348,7 @@ exports.getTopicAnalytics = async (req, res) => {
     res.status(500).json({ message: 'Server error.' });
   }
 };
+
 
 
 
